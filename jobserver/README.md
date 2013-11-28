@@ -1,0 +1,104 @@
+spark-job-server provides a RESTful interface for submitting and managing Spark jobs, jars, and job contexts.
+
+## Features
+
+- *"Spark as a Service"*: Simple REST interface for all aspects of job, context management
+- Supports sub-second low-latency jobs via long-running job contexts
+- Start and stop job contexts for RDD sharing and low-latency jobs; change resources on restart
+- Kill running jobs via stop context
+- Separate jar uploading step for faster job startup
+- Asynchronous and synchronous job API.  Synchronous API is great for low latency jobs!
+- Works with Standalone Spark as well as Mesos
+- Job and jar info is persisted via a pluggable DAO interface
+
+## Architecture
+
+The job server is intended to be run as one or more independent processes, separate from the Spark cluster
+(though it very well may be colocated with say the Master).
+
+At first glance, it seems many of these functions (eg job management) could be integrated into the Spark standalone master.  While this is true, we believe there are many significant reasons to keep it separate:
+
+- We want the job server to work for Mesos and YARN as well
+- Spark and Mesos masters are organized around "applications" or contexts, but the job server supports running many discrete "jobs" inside a single context
+- We want it to support Shark functionality in the future
+- Loose coupling allows for flexible HA arrangements (multiple job servers targeting same standalone master, or possibly multiple Spark clusters per job server)
+
+Flow diagrams are checked in in the doc/ subdirectory.  .diagram files are for websequencediagrams.com... check them out, they really will help you understand the flow of messages between actors.
+
+## API
+
+### Jars
+
+    GET /jars            - lists all the jars and the last upload timestamp
+    POST /jars/<appName> - uploads a new jar under <appName>
+
+### Contexts
+
+    GET /contexts         - lists all current contexts
+    POST /contexts/<name> - creates a new context
+    DELETE /contexts/<name> - stops a context and all jobs running in it
+
+### Jobs
+
+Jobs submitted to the job server must implement a `SparkJob` trait.  It has a main `runJob` method which is
+passed a SparkContext and a typesafe Config object.  Results returned by the method are made available through
+the REST API.
+
+    GET /jobs             - Lists the last N jobs
+    POST /jobs            - Starts a new job, use ?sync=true to wait for results
+    GET /jobs/<jobId>     - gets the result or status of a specific job
+
+### Context configuration
+
+A number of context-specific settings can be controlled when creating a context (POST /contexts) or running an
+ad-hoc job (which creates a context on the spot).
+
+When creating a context via POST /contexts, the query params are used to override the default configuration in
+spark.context-settings.  For example,
+
+   POST /contexts/my-new-context?num-cpu-cores=10
+
+would override the default spark.context-settings.num-cpu-cores setting.
+
+When starting a job, and the context= query param is not specified, then an ad-hoc context is created.  Any
+settings specified in spark.context-settings will override the defaults in the job server config when it is
+started up.
+
+For the exact context configuration parameters, see JobManagerActor docs as well as application.conf.
+
+### Job Result Serialization
+
+The result returned by the `SparkJob` `runJob` method is serialized by the job server into JSON for routes
+that return the result (GET /jobs with sync=true, GET /jobs/<jobId>).  Currently the following types can be
+serialized properly:
+
+- String, Int, Long, Double, Float, Boolean
+- Scala Map's with string key values (non-string keys may be converted to strings)
+- Scala Seq's
+- Array's
+- Anything that implements Product (Option, case classes) -- they will be serialized as lists
+- Maps and Seqs may contain nested values of any of the above
+
+If we encounter a data type that is not supported, then the entire result will be serialized to a string.
+
+## Running a local job server
+
+From SBT shell, simply type "re-start".  This uses a default configuration file.  An optional argument is a
+path to an alternative config file.  You can also specify JVM parameters after "---".  Including all the
+options looks like this:
+
+    re-start /path/to/my.conf --- -Xmx8g
+
+## Development hints
+
+- Please run scalastyle to ensure your code changes don't break the style guide
+- Do "re-start" from SBT for quick restarts of the job server process
+- Please update the g8 template if you change the SparkJob API
+
+## TODO
+
+- Implement a main index.html.  It should display:
+    - All the running contexts
+    - All the current jobs in each running context
+
+- Implement an interactive SQL window.  See: [spark-admin](https://github.com/adatao/spark-admin)

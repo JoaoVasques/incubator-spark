@@ -20,6 +20,7 @@ import sbt.Classpaths.publishTask
 import Keys._
 import sbtassembly.Plugin._
 import AssemblyKeys._
+import spray.revolver.RevolverPlugin._
 // For Sonatype publishing
 //import com.jsuereth.pgp.sbtplugin.PgpKeys._
 
@@ -56,6 +57,8 @@ object SparkBuild extends Build {
   lazy val mllib = Project("mllib", file("mllib"), settings = mllibSettings) dependsOn(core)
 
   lazy val yarn = Project("yarn", file("yarn"), settings = yarnSettings) dependsOn(core)
+
+  lazy val jobserver = Project("jobserver", file("jobserver"), settings = jobServerSettings) dependsOn(core)
 
   lazy val assemblyProj = Project("assembly", file("assembly"), settings = assemblyProjSettings)
     .dependsOn(core, bagel, mllib, repl, streaming) dependsOn(maybeYarn: _*)
@@ -315,6 +318,21 @@ object SparkBuild extends Build {
       "org.apache.hadoop" % "hadoop-yarn-client" % hadoopVersion excludeAll(excludeJackson, excludeNetty, excludeAsm, excludeCglib)
     )
   )
+
+  def jobServerSettings = sharedSettings ++ Seq(
+    name := "spark-job-server",
+    scalacOptions += "-Ydependent-method-types",   // Needed for Spray with Scala 2.9
+    libraryDependencies ++= Seq(
+      "ch.qos.logback" % "logback-classic" % "1.0.7",
+      "com.typesafe" % "config" % "1.0.0",
+      "org.joda" % "joda-convert" % "1.2",
+      "com.yammer.metrics" % "metrics-core" % "2.2.0"
+    ),
+    javaOptions in Revolver.reStart += jobServerLogging,
+    javaOptions in Revolver.reStart += "-Djava.security.krb5.realm= -Djava.security.krb5.kdc="
+  )
+
+  lazy val jobServerLogging = "-Dlogback.configurationFile=config/logback-local.xml"
 
   def assemblyProjSettings = sharedSettings ++ Seq(
     name := "spark-assembly",
