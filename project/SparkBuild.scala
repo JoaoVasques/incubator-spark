@@ -322,11 +322,16 @@ object SparkBuild extends Build {
   def jobServerSettings = sharedSettings ++ Seq(
     name := "spark-job-server",
     scalacOptions += "-Ydependent-method-types",   // Needed for Spray with Scala 2.9
+    resolvers += "spray repo" at "http://repo.spray.io",
     libraryDependencies ++= Seq(
       "ch.qos.logback" % "logback-classic" % "1.0.7",
       "com.typesafe" % "config" % "1.0.0",
       "org.joda" % "joda-convert" % "1.2",
-      "com.yammer.metrics" % "metrics-core" % "2.2.0"
+      "joda-time" % "joda-time" % "2.1",
+      "com.yammer.metrics" % "metrics-core" % "2.2.0",
+      "io.spray" % "spray-json_2.9.2" % "1.2.3",
+      "io.spray" % "spray-can" % "1.0-M6",
+      "io.spray" % "spray-routing" % "1.0-M6"
     ),
     javaOptions in Revolver.reStart += jobServerLogging,
     javaOptions in Revolver.reStart += "-Djava.security.krb5.realm= -Djava.security.krb5.kdc="
