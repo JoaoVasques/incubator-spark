@@ -1,5 +1,17 @@
 spark-job-server provides a RESTful interface for submitting and managing Spark jobs, jars, and job contexts.
 
+## Quick start / development mode
+
+From SBT shell, simply type "re-start".  This uses a default configuration file.  An optional argument is a
+path to an alternative config file.  You can also specify JVM parameters after "---".  Including all the
+options looks like this:
+
+    re-start /path/to/my.conf --- -Xmx8g
+
+Note that re-start (SBT Revolver) forks the job server in a separate process.  If you make a code change, simply
+type re-start again at the SBT shell prompt, it will compile your changes and restart the jobserver.  It enables
+very fast turnaround cycles.
+
 ## Features
 
 - *"Spark as a Service"*: Simple REST interface for all aspects of job, context management
@@ -80,14 +92,6 @@ serialized properly:
 - Maps and Seqs may contain nested values of any of the above
 
 If we encounter a data type that is not supported, then the entire result will be serialized to a string.
-
-## Running a local job server
-
-From SBT shell, simply type "re-start".  This uses a default configuration file.  An optional argument is a
-path to an alternative config file.  You can also specify JVM parameters after "---".  Including all the
-options looks like this:
-
-    re-start /path/to/my.conf --- -Xmx8g
 
 ## Development hints
 

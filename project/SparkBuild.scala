@@ -319,12 +319,13 @@ object SparkBuild extends Build {
     )
   )
 
-  def jobServerSettings = sharedSettings ++ Seq(
+  def jobServerSettings = sharedSettings ++ Revolver.settings ++ Seq(
     name := "spark-job-server",
     scalacOptions += "-Ydependent-method-types",   // Needed for Spray with Scala 2.9
     resolvers += "spray repo" at "http://repo.spray.io",
     libraryDependencies ++= Seq(
       "ch.qos.logback" % "logback-classic" % "1.0.7",
+      "org.slf4j" % "log4j-over-slf4j" % "1.6.6",       // akka-app uses logback, so no log4j
       "com.typesafe" % "config" % "1.0.0",
       "org.joda" % "joda-convert" % "1.2",
       "joda-time" % "joda-time" % "2.1",
