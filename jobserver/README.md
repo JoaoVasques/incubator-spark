@@ -45,6 +45,11 @@ server will create its own SparkContext, and return a job ID for subsequent quer
       }
     }⏎
 
+NOTE: If you want to feed in a text file config and POST using curl, you want the `--data-binary` option, otherwise
+curl will munge your line separator chars.  Like:
+
+    curl --data-binary @my-job-config.json 'localhost:8090/jobs?appNam=...'
+
 From this point, you could asynchronously query the status and results:
 
     curl localhost:8090/jobs/5453779a-f004-45fc-a11d-a39dae0f9bf4
