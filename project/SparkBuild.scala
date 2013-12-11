@@ -222,6 +222,7 @@ object SparkBuild extends Build {
       "com.typesafe.akka" % "akka-actor" % "2.0.5" excludeAll(excludeNetty),
       "com.typesafe.akka" % "akka-remote" % "2.0.5" excludeAll(excludeNetty),
       "com.typesafe.akka" % "akka-slf4j" % "2.0.5" excludeAll(excludeNetty),
+      "com.typesafe" % "config" % "1.0.0",
       "it.unimi.dsi" % "fastutil" % "6.4.4",
       "colt" % "colt" % "1.2.0",
       "net.liftweb" % "lift-json_2.9.2" % "2.5",
