@@ -6,6 +6,12 @@ import akka.util.Timeout
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
 
+/**
+ * An implementation of [[NamedRddSupport]] API for the Job Server.
+ * Note that this contains code that executes on the same thread as the job.
+ * Another part of this system is the rddManager, which is an actor which manages the concurrent
+ * update of shared RDD state.
+ */
 class JobServerNamedRdds(val rddManager: ActorRef) extends NamedRdds {
   import RddManagerActorMessages._
 

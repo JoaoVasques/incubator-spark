@@ -6,6 +6,16 @@ import java.util.concurrent.atomic.AtomicReference
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
 
+/**
+ * NamedRdds - a trait that gives you safe, concurrent creation and access to named RDDs
+ * (the native SparkContext interface only has access to RDDs by numbers).
+ * It facilitates easy sharing of RDDs amongst jobs sharing the same SparkContext.
+ * If two jobs simultaneously tries to create an RDD with the same name,
+ * only one will win and the other will retrieve the same one.
+ *
+ * Note that to take advantage of NamedRddSupport, a job must mix this in and use the APIs here instead of
+ * the native RDD `cache()`, otherwise we will not know about the names.
+ */
 trait NamedRdds {
   // Default timeout is 60 seconds. Hopefully that is enough to let most RDD generator functions finish.
   val defaultTimeout = akka.util.Timeout(akka.util.Duration(60, java.util.concurrent.TimeUnit.SECONDS))
