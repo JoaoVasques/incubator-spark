@@ -68,7 +68,7 @@ real clusters and most jobs this may be too slow.
 
 Another way of running this job is in a pre-created context.  Start a new context:
 
-    curl -d "" 'localhost:8090/contexts/test-context?numCores=2&memPerNode=512m'
+    curl -d "" 'localhost:8090/contexts/test-context?num-cpu-cores=4&mem-per-node=512m'
     OK⏎
 
 You can verify that the context has been created:
