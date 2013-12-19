@@ -21,6 +21,8 @@ import Keys._
 import sbtassembly.Plugin._
 import AssemblyKeys._
 import spray.revolver.RevolverPlugin._
+import spray.revolver.Actions
+
 // For Sonatype publishing
 //import com.jsuereth.pgp.sbtplugin.PgpKeys._
 
@@ -337,7 +339,16 @@ object SparkBuild extends Build {
     jarName in assembly <<= version map { v => "spark-job-server-" + v + ".jar" },
     assembleArtifact in packageScala := false,       // scala-library already packaged in main assembly
     javaOptions in Revolver.reStart += jobServerLogging,
-    javaOptions in Revolver.reStart += "-Djava.security.krb5.realm= -Djava.security.krb5.kdc="
+    javaOptions in Revolver.reStart += "-Djava.security.krb5.realm= -Djava.security.krb5.kdc=",
+    // The only change from sbt-revolver task definition is the "fullClasspath in Compile" so that
+    // we can add Spark to the classpath without assembly barfing
+    Revolver.reStart <<= InputTask(Actions.startArgsParser) { args =>
+      (streams, state, Revolver.reForkOptions, mainClass in Revolver.reStart,
+      fullClasspath in Compile, Revolver.reStartArgs, args)
+      .map(Actions.restartApp)
+      .updateState(Actions.registerAppProcess)
+      .dependsOn(products in Compile)
+    }
   ) ++ extraAssemblySettings
 
   lazy val jobServerLogging = "-Dlogback.configurationFile=config/logback-local.xml"
