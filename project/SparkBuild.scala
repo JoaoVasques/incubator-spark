@@ -58,7 +58,7 @@ object SparkBuild extends Build {
 
   lazy val yarn = Project("yarn", file("yarn"), settings = yarnSettings) dependsOn(core)
 
-  lazy val jobserver = Project("jobserver", file("jobserver"), settings = jobServerSettings) dependsOn(core)
+  lazy val jobserver = Project("jobserver", file("jobserver"), settings = jobServerSettings) dependsOn(core % "provided")
 
   lazy val assemblyProj = Project("assembly", file("assembly"), settings = assemblyProjSettings)
     .dependsOn(core, bagel, mllib, repl, streaming) dependsOn(maybeYarn: _*)
@@ -319,7 +319,7 @@ object SparkBuild extends Build {
     )
   )
 
-  def jobServerSettings = sharedSettings ++ Revolver.settings ++ Seq(
+  def jobServerSettings = sharedSettings ++ Revolver.settings ++ assemblySettings ++ Seq(
     name := "spark-job-server",
     scalacOptions += "-Ydependent-method-types",   // Needed for Spray with Scala 2.9
     resolvers += "spray repo" at "http://repo.spray.io",
@@ -334,9 +334,11 @@ object SparkBuild extends Build {
       "io.spray" % "spray-can" % "1.0-M6",
       "io.spray" % "spray-routing" % "1.0-M6"
     ),
+    jarName in assembly <<= version map { v => "spark-job-server-" + v + ".jar" },
+    assembleArtifact in packageScala := false,       // scala-library already packaged in main assembly
     javaOptions in Revolver.reStart += jobServerLogging,
     javaOptions in Revolver.reStart += "-Djava.security.krb5.realm= -Djava.security.krb5.kdc="
-  )
+  ) ++ extraAssemblySettings
 
   lazy val jobServerLogging = "-Dlogback.configurationFile=config/logback-local.xml"
 
