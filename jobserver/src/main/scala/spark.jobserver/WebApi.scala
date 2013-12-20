@@ -152,6 +152,8 @@ class WebApi(system: ActorSystem, config: Config, port: Int,
       //         }
       //      }
       complete("Not implemented")
+    } ~ path("healthz") {
+      complete("OK")
     }
   }
 
