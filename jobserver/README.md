@@ -174,3 +174,10 @@ If we encounter a data type that is not supported, then the entire result will b
     - All the current jobs in each running context
 
 - Implement an interactive SQL window.  See: [spark-admin](https://github.com/adatao/spark-admin)
+
+- Use `SparkContext.setJobGroup` with the job ID
+- Support job cancellation via `cancelJobGroup`
+- Stream the current job progress via a Listener
+- Add routes to return stage info for a job.  Persist it via DAO so that we can always retrieve stage / performance info
+  even for historical jobs.  This would be pretty kickass.
+- Store the config used to launch a job.  Again good for reproducability.
